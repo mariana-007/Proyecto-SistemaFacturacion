@@ -1,0 +1,19 @@
+SISTEMA DE FACTURACION - Programacion II (ITI-321) - UTN Sede Guanacaste
+
+REQUISITOS
+- JDK 17 o superior y NetBeans (proyecto Maven).
+- MySQL en ejecucion.
+
+PASOS
+1. Ejecutar el script database/ventas.sql en MySQL (crea la base "ventas",
+   las tablas y el usuario de prueba).
+2. En NetBeans: File > Open Project y elegir la carpeta SistemaFacturacion.
+   Maven descarga solo el conector de MySQL (mysql-connector-j).
+3. Abrir src/main/java/facturacion/Conexion.java y poner la clave de su MySQL
+   en la constante CLAVE (y el usuario/puerto si son distintos).
+4. Click derecho al proyecto > Clean and Build, luego Run.
+   La clase principal es facturacion.FrmLogin.
+5. Ingresar con: cedula 101010101  /  contrasena admin123
+
+NOTA: si su JDK es menor a 17, cambiar maven.compiler.source y
+maven.compiler.target en pom.xml (por ejemplo a 11).
