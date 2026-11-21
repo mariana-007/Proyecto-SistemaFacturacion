@@ -4,17 +4,67 @@
  */
 package facturacion;
 
+import java.sql.SQLException;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author Zachary Ruiz
  */
 public class FrmListadoFactura extends javax.swing.JFrame {
 
+    private final FacturaDAO facturaDAO = new FacturaDAO();
+    private List<Factura> listaFacturas = new ArrayList<>();
+    private final DateTimeFormatter formatoFecha = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
     /**
      * Creates new form FrmListadoFactura
      */
     public FrmListadoFactura() {
         initComponents();
+    }
+
+    private void buscarFacturas() {
+        String filtro = txtBuscar.getText().trim();
+
+        try {
+            listaFacturas = facturaDAO.buscarFacturas(filtro);
+
+            DefaultTableModel modelo = (DefaultTableModel) tblListaFacturacion.getModel();
+            modelo.setRowCount(0);
+
+            for (Factura f : listaFacturas) {
+                String fechaTexto = (f.getFecha() != null) ? f.getFecha().format(formatoFecha) : "";
+                Object[] fila = {
+                    f.getNumeroFactura(),
+                    fechaTexto,
+                    f.getCedulaCliente(),
+                    f.getNombreCliente(),
+                    String.format("%.2f", f.getTotal())
+                };
+                modelo.addRow(fila);
+            }
+
+            if (listaFacturas.isEmpty() && !filtro.isEmpty()) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "No se encontraron facturas con ese criterio.",
+                        "Sin resultados",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Error al buscar facturas: " + ex.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
     }
 
     /**
@@ -30,7 +80,7 @@ public class FrmListadoFactura extends javax.swing.JFrame {
         jPanel1 = new javax.swing.JPanel();
         lblTitulo = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
-        txtBuscarCedulaoNombre = new javax.swing.JTextField();
+        txtBuscar = new javax.swing.JTextField();
         btnBuscar = new javax.swing.JButton();
         btnMostra = new javax.swing.JButton();
         btnAgregarfactura = new javax.swing.JButton();
@@ -53,10 +103,25 @@ public class FrmListadoFactura extends javax.swing.JFrame {
         jLabel1.setText("Buscar por cedula o nombre ");
 
         btnBuscar.setText("Buscar");
+        btnBuscar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBuscarActionPerformed(evt);
+            }
+        });
 
         btnMostra.setText("Mostrar todas");
+        btnMostra.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnMostraActionPerformed(evt);
+            }
+        });
 
         btnAgregarfactura.setText("Agregar factura");
+        btnAgregarfactura.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAgregarfacturaActionPerformed(evt);
+            }
+        });
 
         jLabel2.setText("Esta pantalla muestra unicamenta el apartado de las facturas");
 
@@ -74,8 +139,18 @@ public class FrmListadoFactura extends javax.swing.JFrame {
         jScrollPane1.setViewportView(tblListaFacturacion);
 
         btnMostarFactura.setText("Ver factura");
+        btnMostarFactura.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnMostarFacturaActionPerformed(evt);
+            }
+        });
 
         btnCerrar.setText("Cerrar");
+        btnCerrar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCerrarActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -91,7 +166,7 @@ public class FrmListadoFactura extends javax.swing.JFrame {
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addComponent(jLabel1)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(txtBuscarCedulaoNombre, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(txtBuscar, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(btnBuscar)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -113,7 +188,7 @@ public class FrmListadoFactura extends javax.swing.JFrame {
                 .addGap(26, 26, 26)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
-                    .addComponent(txtBuscarCedulaoNombre, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtBuscar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnBuscar)
                     .addComponent(btnMostra)
                     .addComponent(btnAgregarfactura))
@@ -143,6 +218,53 @@ public class FrmListadoFactura extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void btnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarActionPerformed
+        buscarFacturas();
+    }//GEN-LAST:event_btnBuscarActionPerformed
+
+    private void btnMostraActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMostraActionPerformed
+        txtBuscar.setText("");
+        buscarFacturas();
+    }//GEN-LAST:event_btnMostraActionPerformed
+
+    private void btnAgregarfacturaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAgregarfacturaActionPerformed
+        FrmNuevaFactura frmNueva = new FrmNuevaFactura();
+        frmNueva.setLocationRelativeTo(this);
+        frmNueva.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        frmNueva.setVisible(true);
+
+        frmNueva.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosed(java.awt.event.WindowEvent e) {
+                txtBuscar.setText("");
+                buscarFacturas();
+            }
+        });
+    }//GEN-LAST:event_btnAgregarfacturaActionPerformed
+
+    private void btnMostarFacturaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMostarFacturaActionPerformed
+        int filaSeleccionada = tblListaFacturacion.getSelectedRow();
+        if (filaSeleccionada == -1) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Seleccione una factura de la tabla para ver su detalle.",
+                    "Aviso",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+
+        Factura facturaSeleccionada = listaFacturas.get(filaSeleccionada);
+        FrmConsultarFactura frmConsulta = new FrmConsultarFactura(facturaSeleccionada);
+        frmConsulta.setLocationRelativeTo(this);
+        frmConsulta.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        frmConsulta.setVisible(true);
+    }//GEN-LAST:event_btnMostarFacturaActionPerformed
+
+    private void btnCerrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCerrarActionPerformed
+        dispose();
+    }//GEN-LAST:event_btnCerrarActionPerformed
 
     /**
      * @param args the command line arguments
@@ -192,6 +314,6 @@ public class FrmListadoFactura extends javax.swing.JFrame {
     private javax.swing.JToggleButton jToggleButton1;
     private javax.swing.JLabel lblTitulo;
     private javax.swing.JTable tblListaFacturacion;
-    private javax.swing.JTextField txtBuscarCedulaoNombre;
+    private javax.swing.JTextField txtBuscar;
     // End of variables declaration//GEN-END:variables
 }

@@ -10,11 +10,34 @@ package facturacion;
  */
 public class FrmConsultarFactura extends javax.swing.JFrame {
 
+    private Factura facturaActual;
+    private final FacturaDAO facturaDAO = new FacturaDAO();
+
     /**
      * Creates new form FrmConsultarFactura
      */
     public FrmConsultarFactura() {
         initComponents();
+    }
+
+    public FrmConsultarFactura(Factura factura) {
+        initComponents();
+        this.facturaActual = factura;
+        cargarEncabezado();
+        cargarDetalle();
+    }
+
+    private void cargarEncabezado() {
+        if (facturaActual == null) {
+            return;
+        }
+    }
+
+    private void cargarDetalle() {
+        if (facturaActual == null) {
+            return;
+        }
+        // Aquí consultas el detalle por número de factura en FacturaDAO y llenas tu JTable de detalle
     }
 
     /**
