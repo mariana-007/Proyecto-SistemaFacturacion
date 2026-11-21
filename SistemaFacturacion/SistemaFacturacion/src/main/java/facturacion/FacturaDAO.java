@@ -64,6 +64,35 @@ public class FacturaDAO {
         }
         return lista;
     }
+    
+    public List<DetalleFactura> obtenerDetallePorFactura(int numeroFactura) throws SQLException {
+    String sql = "SELECT d.codigo_producto, p.descripcion, d.precio_unitario, d.cantidad, d.importe "
+               + "FROM detalle_factura d "
+               + "INNER JOIN producto p ON d.codigo_producto = p.codigo "
+               + "WHERE d.numero_factura = ? "
+               + "ORDER BY d.id_detalle ASC";
+
+    List<DetalleFactura> lista = new ArrayList<>();
+
+    try (Connection con = Conexion.getConexion();
+         PreparedStatement ps = con.prepareStatement(sql)) {
+
+        ps.setInt(1, numeroFactura);
+
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                DetalleFactura det = new DetalleFactura();
+                det.setCodigo(rs.getString("codigo_producto"));
+                det.setDescripcion(rs.getString("descripcion"));
+                det.setPrecio(rs.getDouble("precio_unitario"));
+                det.setCantidad(rs.getInt("cantidad"));
+                det.setImporte(rs.getDouble("importe"));
+                lista.add(det);
+            }
+        }
+    }
+    return lista;
+}
 
     private Factura mapearFacturaEncabezado(ResultSet rs) throws SQLException {
         Factura f = new Factura();

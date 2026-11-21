@@ -26,6 +26,7 @@ public class FrmListadoFactura extends javax.swing.JFrame {
      */
     public FrmListadoFactura() {
         initComponents();
+        buscarFacturas();
     }
 
     private void buscarFacturas() {
@@ -92,7 +93,7 @@ public class FrmListadoFactura extends javax.swing.JFrame {
 
         jToggleButton1.setText("jToggleButton1");
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         lblTitulo.setBackground(new java.awt.Color(26, 64, 86));
         lblTitulo.setFont(new java.awt.Font("SansSerif", 1, 17)); // NOI18N

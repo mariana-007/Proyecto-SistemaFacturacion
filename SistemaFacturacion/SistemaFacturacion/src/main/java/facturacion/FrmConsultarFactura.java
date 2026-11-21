@@ -4,14 +4,22 @@
  */
 package facturacion;
 
+import java.sql.SQLException;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author Zachary Ruiz
  */
 public class FrmConsultarFactura extends javax.swing.JFrame {
 
+    
     private Factura facturaActual;
     private final FacturaDAO facturaDAO = new FacturaDAO();
+    private final DateTimeFormatter formatoFecha = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     /**
      * Creates new form FrmConsultarFactura
@@ -19,6 +27,18 @@ public class FrmConsultarFactura extends javax.swing.JFrame {
     public FrmConsultarFactura() {
         initComponents();
     }
+    
+  private void cargarEncabezado() {
+    if (facturaActual == null) {
+        return;
+    }
+
+    txtNumeroFactura.setText(String.valueOf(facturaActual.getNumeroFactura()));
+    txtFecha.setText(facturaActual.getFecha() != null ? facturaActual.getFecha().format(formatoFecha) : "");
+    txtCedulaCliente.setText(facturaActual.getCedulaCliente());
+    txtNombreCliente.setText(facturaActual.getNombreCliente());
+    txtTotal.setText(String.format("%.2f", facturaActual.getTotal()));
+}
 
     public FrmConsultarFactura(Factura factura) {
         initComponents();
@@ -27,18 +47,36 @@ public class FrmConsultarFactura extends javax.swing.JFrame {
         cargarDetalle();
     }
 
-    private void cargarEncabezado() {
-        if (facturaActual == null) {
-            return;
-        }
+
+   private void cargarDetalle() {
+    if (facturaActual == null) {
+        return;
     }
 
-    private void cargarDetalle() {
-        if (facturaActual == null) {
-            return;
+    try {
+        List<DetalleFactura> detalles = facturaDAO.obtenerDetallePorFactura(facturaActual.getNumeroFactura());
+        DefaultTableModel modelo = (DefaultTableModel) tblListaFacturas.getModel();
+        modelo.setRowCount(0);
+
+        for (DetalleFactura d : detalles) {
+            Object[] fila = {
+                d.getCodigo(),
+                d.getDescripcion(),
+                String.format("%.2f", d.getPrecio()),
+                d.getCantidad(),
+                String.format("%.2f", d.getImporte())
+            };
+            modelo.addRow(fila);
         }
-        // Aquí consultas el detalle por número de factura en FacturaDAO y llenas tu JTable de detalle
+    } catch (SQLException ex) {
+        JOptionPane.showMessageDialog(
+            this,
+            "Error al cargar el detalle de la factura: " + ex.getMessage(),
+            "Error",
+            JOptionPane.ERROR_MESSAGE
+        );
     }
+}
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -60,13 +98,13 @@ public class FrmConsultarFactura extends javax.swing.JFrame {
         jLabel4 = new javax.swing.JLabel();
         txtNombreCliente = new javax.swing.JTextField();
         jLabel5 = new javax.swing.JLabel();
-        Total = new javax.swing.JTextField();
+        txtTotal = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        tblListaFacturas = new javax.swing.JTable();
         btnCerrar = new javax.swing.JButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         lblTitulo.setBackground(new java.awt.Color(26, 64, 86));
         lblTitulo.setFont(new java.awt.Font("SansSerif", 1, 17)); // NOI18N
@@ -76,6 +114,7 @@ public class FrmConsultarFactura extends javax.swing.JFrame {
 
         jLabel1.setText("N.º de factura");
 
+        txtNumeroFactura.setEditable(false);
         txtNumeroFactura.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 txtNumeroFacturaActionPerformed(evt);
@@ -84,15 +123,23 @@ public class FrmConsultarFactura extends javax.swing.JFrame {
 
         jLabel2.setText("Fecha");
 
+        txtFecha.setEditable(false);
+
         jLabel3.setText("Cedula Cliente");
+
+        txtCedulaCliente.setEditable(false);
 
         jLabel4.setText("Nombre Clientes");
 
+        txtNombreCliente.setEditable(false);
+
         jLabel5.setText("Total");
+
+        txtTotal.setEditable(false);
 
         jLabel6.setText("Detalle de productos de la factura seleccionado.");
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        tblListaFacturas.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null, null},
                 {null, null, null, null, null},
@@ -103,9 +150,14 @@ public class FrmConsultarFactura extends javax.swing.JFrame {
                 "Codigo", "Descripcion", "Precio", "Cantidad", "Title 5"
             }
         ));
-        jScrollPane1.setViewportView(jTable1);
+        jScrollPane1.setViewportView(tblListaFacturas);
 
         btnCerrar.setText("Cerrar");
+        btnCerrar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCerrarActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -136,7 +188,7 @@ public class FrmConsultarFactura extends javax.swing.JFrame {
                                         .addGap(18, 18, 18)
                                         .addComponent(jLabel5)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                        .addComponent(Total, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                        .addComponent(txtTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(txtCedulaCliente, javax.swing.GroupLayout.PREFERRED_SIZE, 129, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(jLabel6)))
@@ -165,7 +217,7 @@ public class FrmConsultarFactura extends javax.swing.JFrame {
                     .addComponent(jLabel4)
                     .addComponent(txtNombreCliente, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel5)
-                    .addComponent(Total, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(txtTotal, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel6)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -192,6 +244,10 @@ public class FrmConsultarFactura extends javax.swing.JFrame {
     private void txtNumeroFacturaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtNumeroFacturaActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txtNumeroFacturaActionPerformed
+
+    private void btnCerrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCerrarActionPerformed
+        dispose();
+    }//GEN-LAST:event_btnCerrarActionPerformed
 
     /**
      * @param args the command line arguments
@@ -229,7 +285,6 @@ public class FrmConsultarFactura extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTextField Total;
     private javax.swing.JButton btnCerrar;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
@@ -239,11 +294,12 @@ public class FrmConsultarFactura extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel6;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
     private javax.swing.JLabel lblTitulo;
+    private javax.swing.JTable tblListaFacturas;
     private javax.swing.JTextField txtCedulaCliente;
     private javax.swing.JTextField txtFecha;
     private javax.swing.JTextField txtNombreCliente;
     private javax.swing.JTextField txtNumeroFactura;
+    private javax.swing.JTextField txtTotal;
     // End of variables declaration//GEN-END:variables
 }
